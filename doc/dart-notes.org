@@ -1,0 +1,414 @@
+#+TODO: TODO IN-PROGRESS LATER DONE
+
+Dart Notes
+
+* See also Flutter notes:  [[file:~/dev/my-projects-source/public-on-github/flutter_experiments/doc/flutter-notes.org]]
+* Current
+* Dart learning, notes, info
+
+- [ ] Read the whole Tour: https://www.dartlang.org/guides/language/language-tour
+- [ ] Constructors
+- [ ] http://news.dartlang.org/2012/05/types-and-casting-in-dart.html
+- [ ] constructor initialization lists 
+- [ ] Bookmarks "constructor"
+- [ ] open tabs ?? chrome
+- [ ] type cast operators "as, is, is!"
+- [ ] numbers
+- [ ] operators
+- [ ] mixins
+- [ ] futures
+- [ ] mirrors
+
+futures
+easiest way to understand futures is to forget all about the await and async magic
+they're just regular objects
+they have a callback, which you can set with .then
+and they have a value, initially not set, which can be set by whoever created the Future object
+(using a Completer, but that doesn't matter)
+when you say future.then(callback), you are saying that when the future object has its value set, it should call callback
+
+i recommend not using async/await until you understand .then and company
+
+* Dart highlights
+** *Classes:*                   Pure OO, Class Based
+*** No Autoboxing
+*** No Hidden Coersions
+*** *Constructors*:            Best link: https://sites.google.com/site/dartlangexamples/learn/class/constructors
+
+- Generative
+  - With Arguments / No Args 
+  - Named (to not have to repeat some arguments which are default. new ScreechOwl.greyMorph(weight) vs always new ScreechOwl(morph, weight)
+- Factory - Factory constructor functions allow you to bypass the default object instantiation process and return an object instance in some other way. You could return an object from memory or use a different approach to initialization.
+- Only one of Unnamed Generative / Factory constructors can exist on a class. But then, *how can the "factoried class" ever be instantiated?* 
+  - Either by using extensions, by following this pattern:
+    #+BEGIN_SRC java
+      abstract class A {
+          factory A() => new B(); // concrete extension, which does have a generative constructor!! (B can also be in cache etc)
+      }
+    
+      // class B extends A { // error - looks like extends does not add a generative constructor to B automatically
+      class B implements A { // Ok  - looks like implements adds a generative constructo to B automatically
+          foo() => 42;
+      }
+    
+      main() {
+          B b = new B();
+          print('b: ' + b.toString() );
+      }
+    #+END_SRC
+  - Or by using NAMED Generative constructor on the factoried class (this is allowed)
+    #+BEGIN_SRC java
+      class Logger {
+          final String name;
+          bool mute = false;
+
+          // _cache is library-private, thanks to the _ in front
+          // of its name.
+          static final Map<String, Logger> _cache =
+              <String, Logger>{};
+
+          // factory constructor
+          factory Logger(String name) {
+              if (_cache.containsKey(name)) {
+                  return _cache[name];
+              } else {
+                  final logger = new Logger._internal(name);
+                  _cache[name] = logger;
+                  return logger;
+              }
+          }
+
+          // internal generative constructor
+          // Logger(this.name); UNNAMED GENERATING IS NOT ALLOWED
+          Logger._internal(this.name); // NAMED GENERATING IS ALLOWED
+
+          void log(String msg) {
+              if (!mute) {
+                  print(msg);
+              }
+          }
+  
+          int get inCache => _cache.keys.length;
+      }
+
+      main() {
+          Logger logger1 = new Logger("logger 1");
+          print("logger1=$logger1 ; in chache = ${logger1.inCache}");
+          Logger logger2 = new Logger("logger 2");
+          print("logger2=$logger2 ; in chache = ${logger2.inCache}");
+          Logger loggerAgain = new Logger("logger 1");
+          print("loggerAgain=$loggerAgain ; in chache = ${loggerAgain.inCache}");
+
+      }
+    #+END_SRC
+Links:
+***** TODO https://gbracha.blogspot.ca/2007/06/constructors-considered-harmful.html
+***** TODO https://gbracha.blogspot.ca/2010/06/nest-of-classes.html
+***** TODO https://groups.google.com/a/dartlang.org/forum/#!topic/misc/Sc1zkMzPrys (email)
+***** TODO https://groups.google.com/a/dartlang.org/forum/?fromgroups#!topic/misc/Lnj2sRQaITQ 
+***** TODO https://stackoverflow.com/questions/21744677/how-does-the-const-constructor-actually-work
+***** TODO http://wiki.c2.com/?NewConsideredHarmful
+
+** *Typing:*                    Strongly typed since 2.0
+** *Inheritance:*               Mixin based Inheritence
+    - See Brachas paper 25 years ago
+
+** *Concurrency:*               Concurrency via Isolates: Single Threaded, Concurrency based on message passing using Isolates (Actor like, separate heaps, only message passing, no state shared). Await/Async
+
+Dart: separate heaps
+Java: All threads share same heap, but have they own stack.
+
+*** Await/Async
+
+
+
+** *Reflection/Introspection:*  Mirror Based Reflection (Bracha Ungar 2004)
+
+    Reflection is currently limited, basically limited to introspection.
+    
+    Maybe version 2 will have mirror builders (and that also solves the proxy issues?)
+
+    Reflection classic (e.g. in Java):
+      - o.getClass().getMembers()
+        - class provides the gateway to reflection on members
+      - mz - I think reflection forces to ship original classes over the wire, can NOT use proxies with reflection!!
+
+    In mirrors:
+      - Mirrors use another level of indirection: Mirrors are objects that reflect other (reflected) objects (instead of going through the reflected objects's class)
+      - reflect(o).type.declarations;
+        - If you do not have the right mirror, you cannot reflect, addressing difficulties in deployment, distribution, security
+        - Primary use of Dart mirrors is in deployment
+      - mz - I  think that with mirrors, you are forced to create a mirror if you want distributed "reflection"
+      - But mirrors create need for more code that need be shipped in Web
+        - So Dart allows to selectively preserve reflective info
+      - Reflection vs. Mimification
+
+    History of Mirrors
+      - Originated in self, Strongtalk, Newspeak, Scala
+      - Introspection, debugging
+      - Changing program on the fly: needs whole compiler, Dart2JS, VM!
+        - maybe need a service for it
+
+** *Modularity:*                Libraries are modularity mechanis
+
+**** Libraries are modularity mechanism
+
+***** Keywords of modularity: import, package:, dart: 
+- Built in Dart library URIs use the scheme
+  *"import 'dart:a_built_in_package.dart'"*
+  scheme to refer to a library. 
+- Other libraries can use a file system path or the scheme 
+  *"import 'package:package_refered_in_pubspec/file.dart"* 
+  or
+    *"import 'src/:package_refered_in_pubspec/file.dart"* 
+  scheme to specify its URI. 
+  Libraries  uses the package: scheme. 
+ - 
+**** Unlike Java, there are standalone top level functions and classes (global)
+**** Librarias are unit of encapsulation not Privacy
+**** Object Privacy is per Library, use _ for Class private members.
+      -  private members start with _ (underscore)
+      - Noone has implemented a language where all members and methods are private. 30 years no conclusive answer
+**** Libraries are not objects yet.
+**** Import mechanism
+**** Export mechanism
+      - library mySubsystem
+        - can have submodules, but only export some of them
+      - export "subModule1.dart"
+      - export gathers only those modules or classes that are desired to be visible
+
+**** Namespaces: Useing Import Mechanism and prefixing
+      - Used prefixing
+        - import myLib.dart as myLib; // say class Element is in mylib.dart
+          - reference: myLib.Element; // myLib prefix
+        - import anotherLib.dart;     // say class OtherElement is in  anotherLib.dart
+          - reference: OtherElement;       // no prefix
+
+          
+****** Namespace conflicts control
+        - resolved in favor of importing library
+        - 
+
+
+****** best Pracice for Namespaces
+
+        - Use "show" to manage dependencies explicitly
+        - 
+
+
+****** How can a class appear in 2 packages?
+
+For example, TextPainter appears in package "widgets" and "painting". Hoe?
+
+1. TextPainter is a class in file ~flutter/src/painting/text_painter.dart~
+2. ~flutter/painting.dart~ (which is a library) has
+   - ~export 'src/painting/text_painter.dart';~
+   - *this is what makes painting.TextPainter appear in my app after ~import 'package:flutter/widgets.dart'~*
+3. *also*  ~flutter/src/widgets/basic.dart~ has ~export 'package:flutter/painting.dart';~ *REEXPORT PAINTING -> BASIC*
+4. *then* ~flutter/widgets.dart~ (which is library) has ~export 'src/widgets/basic.dart';~ *REEXPORT BASIC -> WIDGETS*
+
+Why is this done at all? Not clear ... Perhaps the idea is some classes like TextPainter should be in widgets but for some  reason cannot be?
+
+**** Representation independence
+      - Fields are never accessed directly
+        - each member of class generates get a {..} and 
+          - res = x.a in code is replaced with res = x.get a()
+          - same for set, x.a = value is translated to x.set a(value)
+      - So if you later implement set/get that does more than the generated get/set, no client code need to change, even subclasses do not need to change.
+     
+**** Uniform Access - is violated in Dart, but not used but would be nice
+
+      - as put forth by Bertrand Meyer. It states 
+        "All services offered by a module should be available through a uniform notation, 
+        which does not betray whether they are implemented through storage or through computation".[1] 
+        - res = x.a and res = x.a() should be equivalent
+        - "x.a = val" and "x.set a(val)" shouild be equivalent
+      - for example, whether new did create a new object or used one stored/cached.
+      - Dart getters do not give Uniform access:
+        - x.a and x.a() are not the same, because the first is equivalent to x.set a(), the second is another method a() on x.
+
+**** Optional Types
+
+      General phiosophy, at compile time let it go, but at runtime cause errors (not weird attempts at coersion)
+
+
+****** Types are Interfaces - classes induce (create) implicit interfaces which are reified (make something abstract more concrete - the implicit interfaces are made concrete).
+
+        - abstract class Pair { get first; get second; }
+
+
+****** Optional Typing Experience: Some say it is too strict: *In practice, Dart does require types used in code to be correct*
+
+        - Some people do not use types at all
+        - In checked mode, at compile time, Dart treats types as required (as assertions)
+          - By default checked mode is on
+          - So unless you change the default, types which are specified are enforced
+          - If you distribute your code as library, you have to allow users to have checked mode "on"
+          - As a result, your code should be type secure (where you specify types), otherwise those users would not be able to use your library.
+        - So the mere presence of type system (combined with existence of compile time checked mode), creates a language the *does require types to be correct*
+
+
+****** Optional Typing Experience: Some say it is too loose: *Do not let me run code that has warnings*
+
+        But this requirement conflicts with a lively, dynamic development.
+
+**** Optional typing note: instanceof
+
+      Java: In the instanceof block, you still have to check types, and noone complains
+      Dart: People want typechecker to shut up "smartly"
+
+****** General Purpose Proxy: Issues with Proxy in checked mode 
+
+        Solutions:
+          - Define type specifix proxy, but they scream in checked mode
+          - So use @proxy annotation to shut up the type system.
+          - Nicer solution would be to use Reflection (??)
+            - Mirror builders in version 2.
+** *Packages:*                  Packages, pub package server, sharing Modularity (libraries)
+
+*** Installing pub server locally. 
+
+https://github.com/dart-lang/pub_server
+
+- Cloned pub_server to /home/mzimmermann/dev/software/flutter/pub_server/
+- Created run-pub.sh -> serving on PUB_HOSTED_URL=http://localhost:8080
+- Created  /home/mzimmermann/dev/software/flutter/package-db                
+  - Published packages will go here; 
+  - pub clients will look here first
+*** Now test adding a library package to my local pub:
+
+- *Action in flutter_charts_common* = Dependency package. We must "publish" flutter_charts_common for it to be available to the world of Dependents.
+
+  - *If customers (dependents) get this package from github, we need to*
+    - cd flutter_charts_common
+
+    - git push
+
+  - *If we publish it on local pub, we need to*
+
+    - cd flutter_charts_common
+    - flutter packages pub publish [--dry-run] [--force] [--server <url>]
+    - *flutter packages pub publish [--dry-run] [--force] --server http://localhost:8080 # LOCAL*
+  
+- *Action in simple_flutter_charts* = Dependent Package that has (needs) dependency. Any action here makes sense only on updates, changes and publishing of the above Dependency.
+
+  - *pubspec.yaml*
+
+    #+BEGIN_SRC yaml
+
+    # See https://www.dartlang.org/tools/pub/dependencies for dependency syntax,
+    #   including how to depend on package on github or local server.
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+        #flutter_charts_common:
+        #  path: /home/mzimmermann/dev/my-projects-source/public-on-github/flutter_charts_common
+        flutter_charts_common:
+          git:
+            url: https://github.com/mzimmerm/flutter_charts_common.git
+            branch: master
+        #flutter_charts_common:
+        #  hosted:
+        #    name: flutter_charts_common
+        #    url: http://localhost:8080
+      
+    #+END_SRC
+
+  - *code in any file in the depent package*
+    #+BEGIN_SRC dart
+    import 'package:flutter_charts_common/flutter_charts_common.dart'
+    // and some code using it, e.g.
+    #+END_SRC
+
+  - *pub upgrade or pub get*
+    - cd simple_flutter_charts
+    - pub get # or upgrade
+*** Using package: vs file: reference
+Generally, *its OK to use relative imports and package imports inside of lib/ when referring to a file in lib/.
+But if you have a file in test/ or bin/ or tool/ you MUST use a package import*
+*** See Resolving dependencies the right way - read https://medium.com/flutter-community/quick-tip-resolving-dart-package-version-conflicts-faster-than-ever-582d097f655d
+*** Building great Dart packages - presentation notes
+
+** *Class Hierarchy:*           Dart Classes Overview
+*** *dart:core*
+**** TODO *Futures*
+easiest way to understand futures is to forget all about the await and async magic
+they're just regular objects
+they have a callback, which you can set with .then
+and they have a value, initially not set, which can be set by whoever created the Future object
+(using a Completer, but that doesn't matter)
+when you say future.then(callback), you are saying that when the future object has its value set, it should call callback
+
+i recommend not using async/await until you understand .then and company
+
+#+BEGIN_SRC 
+List<String> customers = [];
+
+void handleCustomers(String contents) {
+  customers = contents.split('\n');
+  print(customers.toString());
+}
+
+void main() {
+  loadAsset().then(handleCustomers);
+}
+#+END_SRC
+**** TODO *List* 
+**** TODO *Iterable*
+**** TODO *File*
+List<String> customers = await new File('customers').readAsLines(); ?
+*** *dart:collection*
+** *Dart Ecosystem:*            Dart modes, programming, examples, etc   
+
+*** Dart dual execution (Dart VM vs JS compiler)
+
+    - Server side pure Dart
+    - client side either Dart or JS
+
+*** Reflection vs Mimification
+*** Symbols to the rescue for Mimification
+** *Convenience Code*
+*** Iterable.generate() -
+** *Type System:*
+*** Covariant
+But why don't you simply use a covariant ?
+@override
+bool operator ==(covariant Trait other) {
+return name == other.name;
+}
+** *Introspection*             Mirrors
+https://stackoverflow.com/questions/12132264/what-is-the-difference-between-mirror-based-reflection-and-traditional-reflectio/12146255#12146255
+* TODO Todo
+
+** *Iterable, and Iterator* - review and move up
+
+https://stackoverflow.com/questions/10405348/what-is-the-cleanest-way-to-get-the-sum-of-numbers-in-a-collection-list-in-dart
+
+- [ ] Try this: As an Iterable, new Iterable.generate(n, generator)) is equivalent to const [0, ..., n - 1].map(generator)
+- [ ] Does Iterable have index access? 
+- [ ] Relation List / Iterable
+- [ ] 
+- 
+** Methods to iterate in Dart
+** review List / map / reduce and examples
+** review constructors
+- [ ] why just one default constructor?
+- [ ] default vs named
+- 
+* Dart tools (mixture of Flutter as well)
+** pubspec.yaml and the pub tool
+pub is a tool for getting packages to users' systems, and also sharing packages users created with other users.
+*** To publish a package such as flutter_charts:
+- create appropriate pubspec.yaml. See the one in flutter_charts. Also see https://www.dartlang.org/tools/pub/publishing
+- create README.md
+- create LICENSE.md
+- run ~flutter packages pub publish --dry-run~; once there are no errors, run
+- ~flutter packages pub publish~
+  - Asks  to go to browser to authorize (there is a URL link provided in the konsole). Once the URL is submitted, all done
+  - but error: (fixed by setting full URL on : publish_to: https://pub.dartlang.org
+- then go to https://pub.dartlang.org/ and search for flutter_charts.
+** How to build great Dart and Flutter packages and plugins https://www.youtube.com/watch?v=oimGULseQ4M&index=6&list=PLOU2XLYxmsIIJr3vjxggY7yGcGO7i9BK5
+
+
