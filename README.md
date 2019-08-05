@@ -1,2 +1,4 @@
 # dart-experiments
-Experimenting with Dart, not much here.
+Experimenting with Dart.
+
+There is no Flutter build or anything like that.
