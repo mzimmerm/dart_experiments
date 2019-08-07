@@ -153,7 +153,7 @@ Java: All threads share same heap, but have they own stack.
 
 **** Libraries are modularity mechanism
 
-***** Keywords of modularity: import, package:, dart: 
+***** Keywords of modularity: import + package:, dart, src:: 
 - Built in Dart library URIs use the scheme
   *"import 'dart:a_built_in_package.dart'"*
   scheme to refer to a library. 
@@ -341,7 +341,7 @@ and they have a value, initially not set, which can be set by whoever created th
 (using a Completer, but that doesn't matter)
 when you say future.then(callback), you are saying that when the future object has its value set, it should call callback
 
-i recommend not using async/await until you understand .then and company
+i recommend not using async/await until you understand Futures, .then, and company
 
 #+BEGIN_SRC 
 List<String> customers = [];
