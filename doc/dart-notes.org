@@ -265,6 +265,33 @@ Why is this done at all? Not clear ... Perhaps the idea is some classes like Tex
           - Nicer solution would be to use Reflection (??)
             - Mirror builders in version 2.
 ** *Packages:*                  Packages, pub package server, sharing Modularity (libraries)
+*** ~pub~ the package manager - all about it
+ 
+Make sure the flutter pub is before Dart pub?
+
+pub is a command 
+
+**** ~which pub~ => /home/mzimmermann/software/dart/dart-sdk/bin/pub
+**** ~pub global activate webdev~
+
+#+BEGIN_EXAMPLE
+Resolving dependencies... (4.4s)
++ ansi_up 0.0.1+4.0.4
++ ansicolor 1.0.2
++ args 1.5.2
++ async 2.3.0
+
+...
+
+Precompiling executables... (7.5s)
+Precompiled webdev:webdev.
+Installed executable webdev.
+
+Warning: Pub installs executables into $HOME/.pub-cache/bin, which is not on your path.
+You can fix that by adding this to your shell's config file (.bashrc, .bash_profile, etc.):
+
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+#+END_EXAMPLE
 
 *** Installing pub server locally. 
 
