@@ -351,7 +351,7 @@ https://github.com/dart-lang/pub_server
 
   - *pub upgrade or pub get*
     - cd simple_flutter_charts
-    - pub get # or upgrade
+    - pub get # or pub upgrade
 *** Using package: vs file: reference
 Generally, *its OK to use relative imports and package imports inside of lib/ when referring to a file in lib/.
 But if you have a file in test/ or bin/ or tool/ you MUST use a package import*
