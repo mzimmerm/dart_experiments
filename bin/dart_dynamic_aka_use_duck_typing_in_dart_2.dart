@@ -1,15 +1,15 @@
-
-// Shows how we can still do dynamic invocation (aka Duck typing) in Dart 2.0
+// Shows how we can still do dynamic invocation (aka Duck typing) in Dart 2.0,
+//   by declaring variables 'dynamic' (Object, Null, void do not work)
 
 class Dog {
   eatMeat() {
-    print("Eating meat, ooph ooph");
+    print("$this eating meat, ooph ooph");
   }
 }
 
 class Cat {
   eatMeat() {
-    print("Eating meat, mew mew");
+    print("$this eating meat, mew mew");
   }
 }
 

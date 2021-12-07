@@ -1,5 +1,0 @@
-name: experiment_with_test
-description: Testing that fails in Flutter
-
-dev_dependencies:
-  test:
