@@ -12,7 +12,7 @@ class Greet {
 }
 
 String followUp(String name) => 'FollowUp with ' + name;
-
+// todo-00 move to top level
 void main() {
   // Class: Presence of method named 'call' on class
   // converts the object to a function, in the sense that calling in code
