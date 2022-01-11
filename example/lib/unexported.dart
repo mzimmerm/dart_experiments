@@ -1,11 +1,10 @@
-
 class NumWrap {
   /// Number represented by this [NumWrap].
   final num _num;
 
   NumWrap({
     required num from,
-  }) : _num = from ;
+  }) : _num = from;
 
   num increased() {
     if (_num + 1 >= 10.0) {
@@ -27,5 +26,6 @@ class NumWrap {
 
 class AboveLimitException implements Exception {
   String message;
+
   AboveLimitException(this.message);
 }
