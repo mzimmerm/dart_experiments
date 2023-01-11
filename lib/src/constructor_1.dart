@@ -14,6 +14,7 @@
 //       - This unnamed constructor can be either FACTORY or GENERATIVE (NON-FACTORY)
 //       - If "exactly zero" NAMED constructors are defined,
 //       one will be supplied by default [no arg generative unnamed: MyClass()]
+//       Lemma: UNNAMED constructor is always PUBLIC, as the name must be 'MyClass(args)' - no _
 //   3. Class MUST have "at least one" GENERATIVE (NON-FACTORY) constructor
 //     - can be NAMED OR UNNAMED
 //     - can be library PRIVATE (start with _) or PUBLIC. If PRIVATE, class cannot be extended,
@@ -33,6 +34,8 @@
 //      Lemma: If a class has 1 or more private GENERATIVE constructors and 0 public GENERATIVE constructors,
 //             it cannot be extended in another library,
 //             [because the extension constructor MUST call a GENERATIVE super(args)].
+//             Note: The private GENERATIVE must be NAMED, like MyClass._internal,
+//                   because UNNAMED constructor is always PUBLIC.
 //      Lemma: If a class has only FACTORY constructors, (one or more GENERATIVE must be still provided),
 //             it cannot be extended iff all GENERATIVE are private.
 //             (in a nutshell, class with FACTORY constructors cannot be extended unless GENERATIVE PUBLIC is provided)
