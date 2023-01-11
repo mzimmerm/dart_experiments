@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 // Classes in the package dart_experiments, even those not exported (that is, under src)
 //   can be tested by importing them in tests as follows:
-import '../example/lib/unexported.dart'; // good
+import '../example/lib/unexported.dart'; // good - but no way to import from example without warning.
 // BAD: import '../lib/src/util/unexported.dart'; // bad - do not step in and out of lib in imports/exports
 
 void main() {
