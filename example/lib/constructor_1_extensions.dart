@@ -41,6 +41,18 @@ class PointNonExtensibleOneUnnamedGenerativeExtension extends PointNonExtensible
 }
 */
 
+/// Trying to extend [NonExtendable], something like this, will work in the
+/// same library (same 'source file') but not in another library,
+/// making the class [NonExtendable] same as 'final' in Java
+/// from the perspective of any client code.
+/*
+class ExtendsNonExtendableInSameLibrary extends NonExtendable {
+  ExtendsNonExtendableInSameLibrary._singleGenerativeConstructor() : super._singleGenerativeConstructor();
+  factory ExtendsNonExtendableInSameLibrary() {
+    return ExtendsNonExtendableInSameLibrary._singleGenerativeConstructor();
+  }
+}
+*/
 
 main() {
 

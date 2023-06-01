@@ -4,6 +4,22 @@ Dart Notes
 
 * See also Flutter notes:  [[file:~/dev/my-projects-source/public-on-github/flutter_experiments/doc/flutter-notes.org]]
 * Current
+** Command line arguments
+
+To pass command line arguments:
+
+1) The correct way: ~flutter run --device-id=linux --dart-entrypoint-args 'arg1 arg2'    file_with_main.dart~ => main(List<String> args) => args[0]=arg1, args[1]=arg2
+   - But this is only supported on desktop, see ~flutter help run~
+2) The workaround:  ~flutter run --device-id=linux --dart-define=PSEUDO_ARGS='arg1 arg2' file_with_main.dart~ => In main, use args=String.fromEnvironment('PSEUDO_ARGS').split(' ') => args[0]=arg1, args[1]=arg2
+   - So this is the only reasonable way.
+** Async
+
+      // Sleep for some time before running next example
+      // await Future.delayed(const Duration(seconds: 3));
+
+      // sleep(const Duration(seconds: 1));
+
+
 * Dart learning, notes, info
 
 - [ ] Read the whole Tour: https://www.dartlang.org/guides/language/language-tour

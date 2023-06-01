@@ -46,7 +46,7 @@
 //         must be NAMED [e.g. MyClass.someName() or MyClass._someName()] to satisfy Rule 2.
 //       - If the UNNAMED GENERATIVE [MyClass()] is used or generated, it's existence satisfies Rule 2.
 //
-//   Rule 2. *PUBLIC class      MUST have: "1"      UNNAMED constructor   [MyClass(args)] or [factory MyClass(args)]*
+//   Rule 2. *PUBLIC class      MUST have: "1"      UNNAMED constructor   [MyClass(args)] or [factory MyClass(args)]; the UNNAMED generative may be Dart-added, unless it is prevented by Rule 3 not applying*
 //            PUBLIC class CODE MUST have: "0 OR 1" UNNAMED constructors.
 //
 //       - This UNNAMED constructor can be either FACTORY  [factory MyClass(args)]
@@ -67,75 +67,97 @@
 //                       and because the factory must return self
 //                       or extension (none of which can be created), this is COMPILE ERROR.
 //
-//   Rule 3. Condition when Dart *generates* the default UNNAMED GENERATIVE no-arg constructor [MyClass()]
+//   Rule 3. Condition when Dart *generates* the default UNNAMED GENERATIVE no-arg constructor [MyClass()] (public by definition)
 //
 //      Dart generates the [MyClass()] constructor for the class, if and only if (IFF):
-//      a) class CODE has "0" UNNAMED FACTORY       [0 factory MyClass(args)] in CODE
-//      -   OR (inclusive or)
+//      a) class CODE has "0" UNNAMED FACTORY       [0 factory MyClass(args)]
+//      - AND
 //      b) class CODE as "0" NAMED GENERATIVE (0 [MyClass.someName] or [MyClass._someName]) (public or private)
 //
-//      Lemma 3.1 (recipe to create a private NON-FACTORY class in Dart):
-//             If class CODE has only PRIVATE GENERATIVE constructors ("1+" of them)
-//             [MyClass._someName1[, [MyClass._someName2] etc,
-//             AND "0" FACTORY constructors,
-//             Then the class is PRIVATE.
-//               (in the sense no other library code can create it's instance,
-//               although such instance can be passed to it as parameter by importing the class's library)
+//      Note: If either a) or b) are FALSE, then the default constructor is NOT generated
+//
+//      Lemma 3.1: Recipe for creating a PRIVATE NON-FACTORY class in Dart:
+//
+//             If we provide in the class CODE:
+//             - Only PRIVATE GENERATIVE constructors ("1+" of them)
+//               [MyClass._someName1[, [MyClass._someName2] etc,
+//             - "0" public FACTORY constructors
+//             then the class is PRIVATE (in the sense other library code
+//             CAN NOT create it's instance, although such instance can be passed
+//             to it as parameter by importing the class's library)
+//
+//             Note: private generative constructor must be named. Unnamed is always public.
+//
 //             Reason: There is no way to publicly construct instance (construct in code of another library),
 //                     - because the default no-arg [MyClass()] is not generated, and the
 //                       PRIVATE GENERATIVE constructors cannot be invoked in code in another library.
 //
 //             Note: This Lemma describes a situation where
-//                   Rule 3b true via existence of only private generative constructor, Rule 3a true.
+//                   Rule 3a is true,
+//                   Rule 3b is false (via existence of 1+ private generative constructor).
 //
-//      Lemma 3.2 If a class CODE has 1 UNNAMED FACTORY constructor [factory MyClass()] (this makes [MyClass()] impossible),
-//             for an instance to be created, it MUST have "1+" NAMED GENERATIVE constructors
-//              [MyClass.from(args) or MyClass._from(args)], because something has to exist to create the instance.
-//             Note: This Lemma describes a situation where
-//                   Rule 3a is false, Rule 3b is true
+//      Lemma 3.2: If we provide in the class CODE
+//                - "1" UNNAMED FACTORY constructor [factory MyClass()]
+//                then, for an instance to be created, we MUST also provide "1+"
+//                NAMED GENERATIVE constructors [MyClass.from(args) or MyClass._from(args)],
+//                because something has to exist to create the instance.
 //
-//      Lemma 3.2.1 (recipe to create a PUBLIC NON-SINGLETON FACTORY class)
-//             Under conditions of Lemma 1.2., if "1+" NAMED GENERATIVE constructor is PUBLIC
-//             [MyClass.from(args)], the resulting class is a NON-SINGLETON FACTORY.
-//             Note: This Lemma describes a situation where
-//                   Rule 3a is false, Rule 3b is true via a PUBLIC GENERATIVE [MyClass.from(args)]
+//                Note: This Lemma describes a situation where
+//                      Rule 3a is false via existence of "1" UNNAMED FACTORY
+//                      Rule 3b is FORCED to be false!
+//                              via forcing [MyClass.from(args) or MyClass._from(args)],
+//                              otherwise error
 //
-//      Lemma 3.2.2 (recipe to create a PUBLIC SINGLETON FACTORY class)
-//             Under conditions of Lemma 3.2., if ALL NAMED GENERATIVE constructor are PRIVATE
-//             [say only one, MyClass._internal()]
-//             the resulting class CAN BE MADE to a SINGLETON FACTORY by returning a static SINGLE instance from
-//             the FACTORY [factory MyClass() { return _instance; }], assuming [static final _instance = MyClass._internal();]
+//      Lemma 3.2.1: Recipe for creating a PUBLIC FACTORY NON-SINGLETON class:
+//
+//             If we provide in CODE
+//             - "1+" public NAMED GENERATIVE constructors [MyClass.from(args)],
+//             - "0+" NAMED FACTORY
+//             - "1+ UNNAMED FACTORY [factory MyClass], then resulting class is a NON-SINGLETON FACTORY.
+//
+//             Reason:
 //             Note: This Lemma describes a situation where
-//                   Rule 3a is false, Rule 3b is true via a PRIVATE GENERATIVE [MyClass._internal()]
-//             Note: There is no way for any code outside our library to create another instance,
+//                   Rule 3a is false via a public NAMED GENERATIVE [MyClass.from(args)]),
+//                   Rule 3b is true
+//
+//      Lemma 3.2.2: Recipe to create a PUBLIC FACTORY SINGLETON class:
+//             If
+//             - ALL NAMED GENERATIVE constructor are PRIVATE [say only one, MyClass._internal()]
+//             - then the resulting class CAN BE MADE to a SINGLETON FACTORY by providing
+//               a UNNAMED FACTORY [factory MyClass() { return _instance; }], returning a static SINGLE instance
+//               assuming [static final _instance = MyClass._internal();]
+//
+//             Reason: There is no way for any code outside our library to create another instance,
 //                    as the GENERATIVE [MyClass._internal()] can only be called from the library the singleton
 //                    is defined.
-//                    Obviously it's library can still crew up and create another instance, but that is a developer error.
+//                    Obviously our library can still screw up and create another instance,
+//                    but that would be a developer error.
+//             Note: This Lemma describes a situation where
+//                   Rule 3a is false via "1" UNNAMED FACTORY [factory MyClass()]
+//                   Rule 3b is false via a PRIVATE GENERATIVE [MyClass._internal()]
 //
-//
-//   Rule 4. Class has "0+" NAMED constructors
+//   Rule 4. Class CODE has "0+" NAMED constructors
 //
 //     Examples: MyClass.someName(),  factory MyClass.someFactory(),
 //               MyClass._someName(), factory MyClass._someFactory()
 //
-//   4. If a class has 0 GENERATIVE constructors (perhaps ONLY FACTORY constructors),
-//      and 0 NAMED FACTORY constructors [no factory MyClass.someName(args)],
-//      then a default GENERATIVE PUBLIC constructor MyClass() is generated.
-//      Note: The condition 0 NAMED FACTORY is needed, as the generated MyClass name would
-//             clash with the named factory.
-//      Note: The condition can be rephrased as:
-//             If a class has no constructors at all,
-//             OR only UNNAMED FACTORY constructor [factory MyClass(args)],
-//             then a default GENERATIVE PUBLIC constructor [MyClass()] is generated.
-//      Lemma: If a class has 1 or more private GENERATIVE constructors and 0 public GENERATIVE constructors,
-//             it cannot be extended in another library,
-//             [because the extension constructor MUST call a GENERATIVE super(args)].
+//      Lemma 4.1 : Recipe for making a class PRIVATE (no public use or public extensibility)
+//
+//             - Provide in code, a PRIVATE GENERATIVE constructor.
+//             - Provide "0" UNNAMED FACTORY
+//
+//          Reason: In this situation, a default [MyClass()] constructor will NOT
+//                  be generated. Such class cannot be used (created or extended) in another library (public),
+//                  [because the extension constructor MUST call a GENERATIVE super(args)].
 //             Note: The private GENERATIVE must be NAMED, like MyClass._internal,
 //                   because UNNAMED constructor is always PUBLIC.
-//      Lemma: If a class has only FACTORY constructors, (one or more GENERATIVE must be still provided),
-//             it cannot be extended iff all GENERATIVE are private.
-//             (in a nutshell, class with FACTORY constructors cannot be extended,
-//             unless GENERATIVE PUBLIC is provided)
+
+//      Lemma 4.2 : Recipe for making a class PUBLIC BUT NON-EXTENSIBLE PUBLICLY (public use, NO public extensibility - essentially 'final')
+//
+//             - Provide in code, a PRIVATE GENERATIVE constructor.
+//             - Provide "1" UNNAMED FACTORY [factory MyClass()]
+//
+//
 
 class LoggerOneUnnamedFactory {
   // Instance members
@@ -242,6 +264,64 @@ class PointNonExtensibleOneUnnamedGenerative {
   }
 }
 
+/// This is how to create an equivalent of 'final' in Java
+class NonExtendable {
+  NonExtendable._singleGenerativeConstructor();
+
+  // NonExtendable();
+
+  factory NonExtendable() {
+    return NonExtendable._singleGenerativeConstructor();
+  }
+
+  @override
+  String toString(){
+    return '$runtimeType is like final';
+  }
+}
+
+/// Trying to extend it, something like this, will work in the
+/// same library (same 'source file') but not in another library,
+/// making the class [NonExtendable] same as 'final' in Java
+/// from the perspective of any client code.
+class ExtendsNonExtendableInSameLibrary extends NonExtendable {
+  ExtendsNonExtendableInSameLibrary._singleGenerativeConstructor() : super._singleGenerativeConstructor();
+  factory ExtendsNonExtendableInSameLibrary() {
+    return ExtendsNonExtendableInSameLibrary._singleGenerativeConstructor();
+  }
+}
+
+class DoesNotGenerateNoArgDefault {
+
+  // Presence of UNNAMED FACTORY prevents Dart-code-generation of default constructor
+  factory DoesNotGenerateNoArgDefault() {
+    // return DoesNotGenerateNoArgDefault._singleGenerativeConstructor();
+    // THIS RETURNED IS NOT THE NO-ARG GENERATIVE.
+    // IT IS CALLING FACTORY, RESULTING IN STACK OVERFLOW
+    return DoesNotGenerateNoArgDefault();
+  }
+
+  @override
+  String toString(){
+    return '$runtimeType is like final';
+  }
+}
+
+class DoesNotGenerateNoArgDefaultEither {
+
+  // Presence of ANY NAMED GENERATIVE prevents Dart-code-generation of default constructor
+  DoesNotGenerateNoArgDefaultEither.any();
+
+  void tryUseDefaultConstructor() {
+    // Compile error: - default constructor was not generated:
+    // DoesNotGenerateNoArgDefaultEither();
+  }
+
+  @override
+  String toString(){
+    return '$runtimeType is like final';
+  }
+}
 main() {
 
   // Logger
@@ -281,5 +361,11 @@ main() {
 
   print(nep1);
   print(nep2);
+
+  // Create an instance of NonExtendable
+  print ('${NonExtendable()}');
+
+  // STACK OVERFLOW
+  print ('${DoesNotGenerateNoArgDefault()}');
 
 }
