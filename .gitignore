@@ -1,3 +1,14 @@
+# Ignore these dirs hierarchically
+/**/backups/
+/**/rejected/
+/**/.emacs.d/
+/**/.emacs.desktop
+/**/.emacs.desktop.lock
+/**/.project.el
+/**/.projectile
+/**/.gnupg
+/**/*cache*/
+
 # Files and directories created by pub.
 .dart_tool/
 .packages
@@ -5,10 +16,6 @@
 # Conventional directory for build output.
 build/
 out/
-
-# emacs related to ignore
-.projectile
-.emacs.d/
 
 # Intellij to ignore
 #   Intellij directories anywhere in hierarchy (ends with /)
